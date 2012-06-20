@@ -10,10 +10,10 @@ include_recipe "runit"
 include_recipe "java"
 
 remote_file "/tmp/kafka.src.tgz" do
-	source node[:kafka][:download_url]
+	source node[:kafka][:tarball_url]
 	mode 0644
 	owner "root"
-	checksum "88b3b68f581d9c53c6ade52f70207114cceac368ff2200ac036a73d3efa0ef7f"
+	checksum node[:kafka][:tarball_checksum]
 end
 
 bash "untar kafka" do
