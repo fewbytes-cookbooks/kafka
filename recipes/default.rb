@@ -9,28 +9,31 @@
 include_recipe "runit"
 include_recipe "java"
 
-remote_file "/tmp/kafka.src.tgz" do
-	source node[:kafka][:tarball_url]
+user "kafka" do
+  system true
+end
+
+kafka_archive = node[:kafka][:archive_url][/.*\/([^\/]+)$/,1]
+remote_file ::File.join("/tmp/", kafka_archive) do
+	source node[:kafka][:archive_url]
 	mode 0644
 	owner "root"
-	checksum node[:kafka][:tarball_checksum]
+	checksum node[:kafka][:archive_checksum]
 end
 
-bash "untar kafka" do
+bash "extract kafka" do
 	user "root"
 	cwd "/tmp"
-	code "tar zxf /tmp/kafka.src.tgz"
-	not_if { File.exists? node[:kafka][:extracted_dir] }
+	code "unzip #{kafka_archive} -d #{node[:kafka][:base_dir]}"
+	not_if { File.directory? ::File.join(node[:kafka][:base_dir], "libs") }
 end
 
-bash "copy kafka" do
-	user "root"
-	cwd "/tmp"
-	code "cp -a /tmp/#{node[:kafka][:extracted_dir]} /opt/kafka"
-	not_if { File.exists? "/opt/kafka" }
+directory node["kafka"]["config_dir"] do
+  mode "0755"
 end
 
-directory "/etc/kafka" do
+# Directory resource
+directory node["kafka"]["base_dir"] do # The path to the directory
   mode "0755"
 end
 
@@ -39,12 +42,18 @@ zk_servers.sort! { |a, b| a.name <=> b.name }
 
 servers = search(:node, "role:kafka")
 
-template "/etc/kafka/server.properties" do 
+template ::File.join(node["kafka"]["config_dir"], "server.properties") do 
 	mode 0644
 	variables :brokerid => node[:kafka][:brokerid], :zk_servers => zk_servers, :hostname=>node[:cloud][:public_hostname], :num_partitions=> node[:kafka][:number_of_partitions_per_topic]
 	notifies :restart, "service[kafka]"
 end
 
+template ::File.join(node["kafka"]["config_dir"], "log4j.properties") do 
+	mode 0644
+	notifies :restart, "service[kafka]"
+end
+
 runit_service "kafka" do
 	cookbook "kafka"
+  options :kafka_server_properties => ::File.join(node["kafka"]["config_dir"], "server.properties"), :user => "kafka"
 end
