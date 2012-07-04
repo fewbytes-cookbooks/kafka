@@ -32,9 +32,13 @@ directory node["kafka"]["config_dir"] do
   mode "0755"
 end
 
-# Directory resource
-directory node["kafka"]["base_dir"] do # The path to the directory
+directory node["kafka"]["base_dir"] do
   mode "0755"
+end
+
+directory node["kafka"]["data_dir"] do
+  mode "0755"
+  owner "kafka"
 end
 
 zk_servers = search(:node, "role:zookeeper or zookeeper_cluster_name:#{node[:kafka][:zk_cluster_name]}")
