@@ -13,6 +13,8 @@ user "kafka" do
   system true
 end
 
+package "unzip"
+
 kafka_archive = node[:kafka][:archive_url][/.*\/([^\/]+)$/,1] # => Retrieve last part of the URL
 remote_file ::File.join("/tmp/", kafka_archive) do
 	source node[:kafka][:archive_url]
