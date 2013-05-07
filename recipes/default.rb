@@ -15,7 +15,7 @@ end
 
 package "unzip"
 
-kafka_archive = node[:kafka][:archive_url][/.*\/([^\/]+)$/,1] # => Retrieve last part of the URL
+kafka_archive = ::File.basename(node[:kafka][:archive_url])
 remote_file ::File.join("/tmp/", kafka_archive) do
 	source node[:kafka][:archive_url]
 	mode 0644
@@ -43,23 +43,27 @@ directory node["kafka"]["data_dir"] do
   owner "kafka"
 end
 
-zk_servers = search(:node, "role:zookeeper or zookeeper_cluster_name:#{node[:kafka][:zk_cluster_name]}")
-zk_servers.sort! { |a, b| a.name <=> b.name }
+zk_servers = search_within_environment(:node,
+    "role:zookeeper or zookeeper_cluster_name:#{node[:kafka][:zk_cluster_name]}")
 
-servers = search(:node, "role:kafka")
-
-template ::File.join(node["kafka"]["config_dir"], "server.properties") do 
+template ::File.join(node["kafka"]["config_dir"], "server.properties") do
 	mode 0644
-	variables :brokerid => node[:kafka][:brokerid], :zk_servers => zk_servers, :hostname=>node[:cloud][:public_hostname], :num_partitions=> node[:kafka][:number_of_partitions_per_topic]
+	variables(
+        :brokerid        => node[:kafka][:brokerid],
+        :zk_servers      => zk_servers.sort_by{|server| server.name},
+        :hostname        => node[:cloud][:public_hostname],
+        :num_partitions  => node[:kafka][:number_of_partitions_per_topic],
+    )
 	notifies :restart, "service[kafka]"
 end
 
-template ::File.join(node["kafka"]["config_dir"], "log4j.properties") do 
+template ::File.join(node["kafka"]["config_dir"], "log4j.properties") do
 	mode 0644
 	notifies :restart, "service[kafka]"
 end
 
+properties_file = ::File.join(node["kafka"]["config_dir"], "server.properties")
 runit_service "kafka" do
 	cookbook "kafka"
-  options :kafka_server_properties => ::File.join(node["kafka"]["config_dir"], "server.properties"), :user => "kafka"
+    options :kafka_server_properties => properties_file, :user => "kafka"
 end
