@@ -11,3 +11,4 @@ default["kafka"]["jmx_port"] = 9999
 default["kafka"]["java_max_memory"] = "768m"
 
 default["kafka"]["data_dir"] = "/mnt/kafka-logs"
+default["kafka"]["log"]["retention_hours"] = 24
