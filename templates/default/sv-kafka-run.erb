@@ -4,7 +4,7 @@ exec 2>&1
 JMX_PORT=<%= node["kafka"]["jmx_port"] %>
 JAVA_OPTS="-Xmx<%= node["kafka"]["java_max_memory"] %> -server  -Dlog4j.configuration=file:<%= node["kafka"]["config_dir"] %>/log4j.properties"
 KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false "
-KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT -Djava.rmi.server.hostname=<%= node["cloud"]["public_hostname"] %>"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT -Djava.rmi.server.hostname=<%= @options[:hostname] %>"
 
 export CLASSPATH=$(find <%= node["kafka"]["base_dir"] %> -name '*.jar'|tr '\n\' ':')
 

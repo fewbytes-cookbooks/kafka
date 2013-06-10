@@ -46,12 +46,15 @@ end
 zk_servers = search_within_environment(:node,
     "role:zookeeper or zookeeper_cluster_name:#{node[:kafka][:zk_cluster_name]}")
 
-template ::File.join(node["kafka"]["config_dir"], "server.properties") do
+my_hostname = node[:cloud] ? node[:cloud][:public_hostname] : node["hostname"]
+
+properties_file = ::File.join(node["kafka"]["config_dir"], "server.properties")
+template ::File.join(properties_file) do
 	mode 0644
 	variables(
         :brokerid        => node[:kafka][:brokerid],
         :zk_servers      => zk_servers.sort_by{|server| server.name},
-        :hostname        => node[:cloud][:public_hostname],
+        :hostname        => my_hostname,
         :num_partitions  => node[:kafka][:number_of_partitions_per_topic],
     )
 	notifies :restart, "service[kafka]"
@@ -62,8 +65,8 @@ template ::File.join(node["kafka"]["config_dir"], "log4j.properties") do
 	notifies :restart, "service[kafka]"
 end
 
-properties_file = ::File.join(node["kafka"]["config_dir"], "server.properties")
 runit_service "kafka" do
 	cookbook "kafka"
-    options :kafka_server_properties => properties_file, :user => "kafka"
+    options :kafka_server_properties => properties_file,
+            :user => "kafka", :hostname => my_hostname
 end
