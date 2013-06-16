@@ -1,3 +1,7 @@
+## 1.1.0
+* Refactored to use ark resource
+* Cleanup
+
 ## 1.0.20
 * Added better check is zookeeper_pairs contains anything to decide is
   kafka should register in zookeeper. This is needed for collection-1.1

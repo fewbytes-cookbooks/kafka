@@ -1,3 +1,46 @@
 #!/bin/sh
-exec 2>&1 
-exec chpst -u <%=@options[:user]%> <%=@options[:install_dir]%>/bin/service-control start
+exec 2>&1
+
+# Setup basic path information.
+MAIN="<%=@options[:java_class]%>"
+HOME_DIR="<%=@options[:install_dir]%>"
+JAVA_HOME="<%=@options[:java_home]%>"
+SERVER_CONFIG="<%=@options[:install_dir]%>/config/server.properties"
+
+# Setup classpath, initially empty.
+CP=""
+
+# Add all .jar files to the classpath.
+for jar in `ls $HOME_DIR/lib/*.jar`; do
+    if [ "" = "$CP" ]; then
+        CP=$jar
+    else
+        CP=$CP:$jar
+    fi
+done
+
+<% if @options[:java_jmx_port] -%>
+# Add the JMX options.
+if [ -z "$JMX_OPTS"]; then
+    JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false "
+fi
+
+JMX_PORT="<%=@options[:java_jmx_port]%>"
+# Add JMX options and port together.
+JMX_OPTS="$JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT "
+<% end -%>
+
+if [ -z "$KAFKA_OPTS" ]; then
+  KAFKA_OPTS="-Xmx<%= node[:kafka][:java][:xmx] %> -server -Djava.net.preferIPv4Stack=true -Dlog4j.configuration=file:$HOME_DIR/config/log4j.properties"
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  JAVA="java"
+else
+  JAVA="$JAVA_HOME/bin/java"
+fi
+
+# Create the JSVC command line.
+CMD="$JAVA $KAFKA_OPTS $JMX_OPTS -cp $CP"
+
+exec chpst -u <%=@options[:user]%> $CMD

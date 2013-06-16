@@ -1,13 +1,14 @@
-maintainer        "Webtrends, Inc."
-maintainer_email  "ivan.vonnagy@webtrends.com"
+maintainer        "Fewbytes, Inc."
+maintainer_email  "avishai@fewbytes.com"
 license           "Apache 2.0"
 description       "Intalls and configures a Kafka broker"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version           "1.0.20"
+version           "1.1.0"
 
 depends           "java"
-depends           "runit"
+depends           "runit", ">= 1.0.0"
 depends           "zookeeper"
+depends           "ark"
 
 recipe	"kafka::default",		"Base configuration for kafka"
 
@@ -18,7 +19,7 @@ end
 attribute "kafka/version",
   :display_name => "Kafka Version",
   :description => "The Kafka version to pull and use",
-  :default => "0.7.1"
+  :default => "0.7.2"
 
 attribute "kafka/home_dir",
   :display_name => "Kafka Home Directory",
