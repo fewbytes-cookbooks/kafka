@@ -7,17 +7,8 @@ HOME_DIR="<%=@options[:install_dir]%>"
 JAVA_HOME="<%=@options[:java_home]%>"
 SERVER_CONFIG="<%=@options[:install_dir]%>/config/server.properties"
 
-# Setup classpath, initially empty.
-CP=""
-
 # Add all .jar files to the classpath.
-for jar in "$(ls $HOME_DIR/*.jar $HOME_DIR/lib/*.jar)"; do
-    if [ "" = "$CP" ]; then
-        CP=$jar
-    else
-        CP=$CP:$jar
-    fi
-done
+CP="$(ls $HOME_DIR/*.jar $HOME_DIR/lib/*.jar | tr ' ' ':')"
 
 <% if @options[:java_jmx_port] -%>
 # Add the JMX options.
@@ -41,6 +32,6 @@ else
 fi
 
 # Create the JSVC command line.
-CMD="$JAVA $KAFKA_OPTS $JMX_OPTS -cp $CP"
+CMD="$JAVA $KAFKA_OPTS $JMX_OPTS -cp $CP $MAIN"
 
 exec chpst -u <%=@options[:user]%> $CMD
