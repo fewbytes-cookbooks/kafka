@@ -29,11 +29,11 @@ user = node[:kafka][:user]
 group = node[:kafka][:group]
 
 if node[:kafka][:broker_id].nil? || node[:kafka][:broker_id].empty?
-		node.set[:kafka][:broker_id] = node[:ipaddress].gsub(".","")
+   node.set[:kafka][:broker_id] = Zlib.crc32(node.name + rand().to_s) >> 1
 end
 
 if node[:kafka][:broker_host_name].nil? || node[:kafka][:broker_host_name].empty?
-		node.set[:kafka][:broker_host_name] = node[:fqdn]
+   node.set[:kafka][:broker_host_name] = node[:fqdn]
 end
 
 log "Broker id: #{node[:kafka][:broker_id]}"
@@ -101,16 +101,11 @@ directory node[:kafka][:data_dir] do
 end
 
 # grab the zookeeper nodes that are currently available
-zookeeper_pairs = Array.new
 if not Chef::Config.solo
-  search(:node, "role:zookeeper AND chef_environment:#{node.chef_environment}").each do |n|
-    zookeeper_pairs << n[:fqdn]
-  end
-end
-
-# append the zookeeper client port (defaults to 2181)
-zookeeper_pairs.map! do |zk_pair|
-  zk_pair.concat(":#{node[:zookeeper][:client_port]}")
+  zookeeper_pairs = search(:node, "role:zookeeper AND chef_environment:#{node.chef_environment}")\
+    .map {|n| "#{n[:fqdn]}:#{n[:zookeeper][:client_port]}"}
+else
+  zookeeper_pairs = []
 end
 
 %w[server.properties log4j.properties].each do |template_file|
