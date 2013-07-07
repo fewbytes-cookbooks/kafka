@@ -28,7 +28,7 @@ java_home   = node['java']['java_home']
 user = node[:kafka][:user]
 group = node[:kafka][:group]
 
-if node[:kafka][:broker_id].nil? || node[:kafka][:broker_id].empty?
+if node[:kafka][:broker_id].nil?
    node.set[:kafka][:broker_id] = Zlib.crc32(node.name + rand().to_s) >> 1
 end
 
