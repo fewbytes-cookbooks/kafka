@@ -103,7 +103,7 @@ end
 # grab the zookeeper nodes that are currently available
 if not Chef::Config.solo
   zookeeper_pairs = search(:node, "role:zookeeper AND chef_environment:#{node.chef_environment}")\
-    .map {|n| "#{n[:fqdn]}:#{n[:zookeeper][:client_port]}"}
+    .map {|n| "#{n[:fqdn]}:#{n[:zookeeper][:client_port]}"}.sort
 else
   zookeeper_pairs = []
 end
