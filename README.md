@@ -1,7 +1,7 @@
 Description
 ===========
 
-Installs kafka 0.7.2
+Installs kafka 0.8.1.1
 
 Requirements
 ============
@@ -28,6 +28,8 @@ Attributes
 * kafka.log_flush_time_interval - The maximum amount of time (ms) a message can sit in a log before we force a flush
 * kafka.log_flush_scheduler_time_interval - The interval (in ms) at which logs are checked to see if they need to be flushed to disk
 * kafka.log_retention_hours - The minimum age of a log file to be eligible for deletion
+* kafka.zookeeper.nodes - If set to an array of hostname:port, the recipe will use these zookeeper addresses instead of searching. Use with chef-solo or dynamically set from a wrapper cookbook.
+
 
 Usage
 =====
