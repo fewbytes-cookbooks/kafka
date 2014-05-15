@@ -43,12 +43,14 @@ log "Broker name: #{node[:kafka][:broker_host_name]}"
 
 # setup kafka group
 group group do
+  system true
 end
 
 # setup kafka user
 user user do
+  system true
   comment "Kafka user"
-  gid "kafka"
+  gid group
   home "/home/kafka"
   shell "/bin/noshell"
   supports :manage_home => false
@@ -62,7 +64,6 @@ ark "kafka" do
   version node[:kafka][:version]
   mode 00644
   action :install
-  strip_leading_dir false
   home_dir install_dir
 end
 
@@ -101,11 +102,17 @@ directory node[:kafka][:data_dir] do
 end
 
 # grab the zookeeper nodes that are currently available
-if not Chef::Config.solo
-  zookeeper_pairs = search(:node, "role:zookeeper AND chef_environment:#{node.chef_environment}")\
-    .map {|n| "#{n[:fqdn]}:#{n[:zookeeper][:client_port]}"}.sort
+zookeeper_nodes = if node["kafka"]["zookeeper"]["nodes"].is_a? Array
+  node["kafka"]["zookeeper"]["nodes"]
+elsif node["kafka"]["zookeeper"]["search_query"] and not Chef::Config.solo
+  name_attr = node["zookeeper"]["search_name_attribute"]
+  port_attr = node["zookeeper"]["search_port_attribute"]
+  search(:node, node["kafka"]["zookeeper"]["search_query"])
+    .map {|n| "#{name_attr.reduce(n) {|n, attr| n[attr]}}:#{port_attr.reduce(n){|n, attr| n[attr]}}"}.sort
+elsif Chef::Config.solo
+  ["localhost:2181"]
 else
-  zookeeper_pairs = []
+  Chef::Application.fatal! "No zookeeper nodes found"
 end
 
 %w[server.properties log4j.properties].each do |template_file|
@@ -113,10 +120,10 @@ end
     source	"#{template_file}.erb"
     owner user
     group group
-    mode  00755
+    mode  00644
     variables({
       :kafka => node[:kafka],
-      :zookeeper_pairs => zookeeper_pairs,
+      :zookeeper_nodes => zookeeper_nodes,
       :client_port => node[:zookeeper][:client_port]
     })
     notifies :restart, "runit_service[kafka]"

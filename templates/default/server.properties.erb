@@ -107,15 +107,12 @@ log.cleanup.interval.mins=1
 
 ############################# Zookeeper #############################
 
-# Enable connecting to zookeeper
-enable.zookeeper=<%= @zookeeper_pairs ? (@zookeeper_pairs.length > 0 ? true : false) : false %>
-
 # Zk connection string (see zk docs for details).
 # This is a comma separated host:port pairs, each corresponding to a zk
 # server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002".
 # You can also append an optional chroot string to the urls to specify the
 # root directory for all kafka znodes.
-zk.connect=<%= @zookeeper_pairs.join(",") %>
+zookeeper.connect=<%= @zookeeper_nodes.join(",") %><%= node["kafka"]["zookeeper"]["chroot"] %>
 
 # Timeout in ms for connecting to zookeeper
-zk.connectiontimeout.ms=<%= node[:kafka][:zk_connectiontimeout] %>
+zookeeper.connection.timeout.ms=<%= node["kafka"]["zookeeper"]["connection.timeout.ms"] %>
