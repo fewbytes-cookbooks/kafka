@@ -18,10 +18,10 @@
 # limitations under the License.
 
 # Install
-default[:kafka][:version] = "0.7.2"
-default[:kafka][:download_url] = "https://s3.amazonaws.com/public.fewbytes.com/kafka-minimal-#{node[:kafka][:version]}.zip"
+default[:kafka][:version] = "0.8.0"
+default[:kafka][:download_url] = "https://dist.apache.org/repos/dist/release/kafka/kafka_2.8.0-0.8.0-beta1.tgz"
 
-default[:kafka][:checksum] = "fbeeee23057b09e4a2b283f399ca80fdbeb2e1bcf7ef2c357e25661a57e03a5c"
+default[:kafka][:checksum] = "750046ab729d2dbc1d5756794ebf8fcb640879b23a64749164c43063286316b8"
 
 default[:kafka][:install_dir] = "/usr/local/kafka"
 default[:kafka][:data_dir] = "/var/kafka"
@@ -30,9 +30,10 @@ default[:kafka][:chroot_suffix] = "brokers"
 
 default[:kafka][:num_partitions] = 1
 default[:kafka][:broker_id] = nil
-default[:kafka][:broker_host_name] = nil
+default[:kafka][:broker_host_name] = fqdn
 default[:kafka][:port] = 9092
-default[:kafka][:threads] = nil
+default[:kafka][:network_threads] = cpu[:total]
+default[:kafka][:io_threads] = cpu[:total]
 default[:kafka][:log_flush_interval] = 10000
 default[:kafka][:log_flush_time_interval] = 1000
 default[:kafka][:log_flush_scheduler_time_interval] = 1000
