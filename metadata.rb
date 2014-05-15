@@ -8,7 +8,6 @@ name              "kafka"
 
 depends           "java"
 depends           "runit", ">= 1.0.0"
-depends           "zookeeper"
 depends           "ark"
 
 recipe	"kafka::default",		"Base configuration for kafka"
